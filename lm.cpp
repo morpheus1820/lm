@@ -38,6 +38,9 @@ void lm(int n, Mat params, int iters=200, double lambda=0.01)
 	double wy=w.at<double>(0,1);
 	double wz=w.at<double>(0,2);
 	
+	double e;
+	Mat H,J,d;
+
 	// main cycle
 	for (int it=1;it<iters;it++)
 	{
@@ -68,15 +71,35 @@ void lm(int n, Mat params, int iters=200, double lambda=0.01)
 			Mat t(1,3,CV_64F);
 			t=t0;
 				
-			Mat J=Mat::zeros(Ndata,Nparams,CV_64F);
-			Mat d=Mat::zeros(Ndata,1,CV_64F);
+			J=Mat::zeros(Ndata,Nparams,CV_64F);
+			d=Mat::zeros(Ndata,1,CV_64F);
+
+			// evaluate jacobian with current params
+			// for(int i=0;i<xe.cols;i++)
+			// {
 
 
-			//for(int i=0;i<)
+			// }
 							
-
+			//compute hessian
+			H=J.t()*J;
+			if(it==0)
+			{
+				e=d.dot(d);
+				cout << "e: "<< e << endl;
+			}				
 		}
 
+		// apply damping factor
+		Mat H_lm=H+(lambda*Mat::eye(Nparams,Nparams,CV_64F));
+
+		// update params
+		Mat dp= -H_lm.inv()*(J.t()*d);	
+		for(int j=0;j<6;j++)
+			params.at<double>(0,j)=dp.at<double>(0,j);
+
+
+		// evaluate total distance (error) at new params
 
 
 	}
