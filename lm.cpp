@@ -89,17 +89,29 @@ void lm(int n, Mat params, int iters=200, double lambda=0.01)
             cout << "K: " << K << " w: " << w << " t: " <<t << endl;
 
 
-			J=Mat::zeros(Ndata,Nparams,CV_64F);
-			d=Mat::zeros(Ndata,1,CV_64F);
-
-			// evaluate jacobian with current params
-
+			// evaluate jacobian with current params w and t
+            J=Mat::zeros(Ndata,Nparams,CV_64F);
+            d=Mat::zeros(Ndata,1,CV_64F);
             //check depth over points
-			// for(int i=0;i<xe.cols;i++)
-			// {
+			for(int i=0;i<renderedPoints;i++)
+			{
+                Mat x(1,3,CV_64F); // i-th point
+                Mat Rt=R;
+                Rt.at<double>(0,2)=t.at<double>(0,0); // perchè??
+                Rt.at<double>(1,2)=t.at<double>(0,1); // perchè??
+                Rt.at<double>(2,2)=t.at<double>(0,2); // perchè??
 
+                //x.at<double>(0,0)=   point x coord
+                //x.at<double>(0,1)=   point y coord
+                //x.at<double>(0,2)= 1.0;
 
-			// }
+                Mat uvs=K*Rt*x;
+                double up=uvs.at<double>(0,0)/uvs.at<double>(0,2);
+                double vp=uvs.at<double>(0,1)/uvs.at<double>(0,2);
+                // compute distance
+                //...
+
+			}
 
 			//compute hessian
 			H=J.t()*J;
