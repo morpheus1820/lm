@@ -27,19 +27,19 @@ Mat rodriguez(Mat R)
 	return w;
 }
 
-void lm(int n, Mat params, int iters=200, double lambda=0.01)
+void lm(int n, Mat K, Mat params, int iters=200, double lambda=0.01)
 {
 	bool updateJ=true;
 	int Ndata=2*n; // corner points???
-	int Nparams=11;
+	int Nparams=6;
 
-	Mat K(4,4,CV_64F);  // settare K...
+	//Mat K(4,4,CV_64F);  // settare K...
     Mat omega(3,3,CV_64F);
+
 
 	double wx=params.at<double>(0,0); //w.at<double>(0,0);
 	double wy=params.at<double>(0,1); //w.at<double>(0,1);
 	double wz=params.at<double>(0,2); //w.at<double>(0,2);
-
     double tx=params.at<double>(0,3);
     double ty=params.at<double>(0,4);
     double tz=params.at<double>(0,5);
@@ -55,17 +55,6 @@ void lm(int n, Mat params, int iters=200, double lambda=0.01)
 		// create intr. param matrix
 		if(updateJ)
 		{
-			// K.at<double>(0,0)=params.at<double>(0,0);
-			// K.at<double>(1,1)=params.at<double>(0,1);
-			// K.at<double>(2,2)=params.at<double>(0,2);
-			// K.at<double>(3,3)=1.0;
-			// K.at<double>(0,3)=params.at<double>(0,3);
-			// K.at<double>(1,3)=params.at<double>(0,4);
-			// K.at<double>(2,3)=params.at<double>(0,5);
-
-            wx=params.at<double>(0,0);
-            wy=params.at<double>(0,1);
-            wz=params.at<double>(0,2);
 
 			float theta2=wx*wx + wy*wy + wz*wz;
 			double theta=sqrt(theta2);
@@ -82,9 +71,9 @@ void lm(int n, Mat params, int iters=200, double lambda=0.01)
 			Mat R=Mat::eye(3,3,CV_64F) + (sin(theta)/theta)*omega+((1-cos(theta)/(theta*theta)))*(omega*omega);
 			Mat t(1,3,CV_64F);
             // update t
-			t.at<double>(0,0)=params.at<double>(0,3);
-            t.at<double>(0,1)=params.at<double>(0,4);
-            t.at<double>(0,2)=params.at<double>(0,5);
+			t.at<double>(0,0)=tx;
+            t.at<double>(0,1)=ty;
+            t.at<double>(0,2)=tz;
 
             cout << "K: " << K << " w: " << w << " t: " <<t << endl;
 
@@ -92,22 +81,23 @@ void lm(int n, Mat params, int iters=200, double lambda=0.01)
 			// evaluate jacobian with current params w and t
             J=Mat::zeros(Ndata,Nparams,CV_64F);
             d=Mat::zeros(Ndata,1,CV_64F);
+
             //check depth over points
-			for(int i=0;i<renderedPoints;i++)
+			for(int i=0;i<n;i++)
 			{
                 Mat x(1,3,CV_64F); // i-th point
                 Mat Rt=R;
-                Rt.at<double>(0,2)=t.at<double>(0,0); // perchè??
-                Rt.at<double>(1,2)=t.at<double>(0,1); // perchè??
-                Rt.at<double>(2,2)=t.at<double>(0,2); // perchè??
+                // Rt.at<double>(0,2)=t.at<double>(0,0); // perchè??
+                // Rt.at<double>(1,2)=t.at<double>(0,1); // perchè??
+                // Rt.at<double>(2,2)=t.at<double>(0,2); // perchè??
 
-                //x.at<double>(0,0)=   point x coord
-                //x.at<double>(0,1)=   point y coord
-                //x.at<double>(0,2)= 1.0;
+                // //x.at<double>(0,0)=   point x coord
+                // //x.at<double>(0,1)=   point y coord
+                // //x.at<double>(0,2)= 1.0;
 
-                Mat uvs=K*Rt*x;
-                double up=uvs.at<double>(0,0)/uvs.at<double>(0,2);
-                double vp=uvs.at<double>(0,1)/uvs.at<double>(0,2);
+                // Mat uvs=K*Rt*x;
+                // double up=uvs.at<double>(0,0)/uvs.at<double>(0,2);
+                // double vp=uvs.at<double>(0,1)/uvs.at<double>(0,2);
                 // compute distance
                 //...
 
@@ -199,6 +189,9 @@ int main( int argc, char **argv )
 
 	w=rodriguez(R0);
 	Mat params(1,6,CV_64F);
+
+    Mat K(4,4,CV_64F);
+
 	params.at<double>(0,0)=1;
 	params.at<double>(0,1)=2;
 	params.at<double>(0,2)=3;
@@ -207,7 +200,7 @@ int main( int argc, char **argv )
 	params.at<double>(0,5)=6;
 
 
-	lm(100,params);
+	lm(100,K,params);
 
 	cout << t0 << endl << R0 << endl;
 
